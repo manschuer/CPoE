@@ -1,4 +1,4 @@
-## Stochastic Recursive Gaussian Process Regression
+## Correlated Product of Experts for Sparse Gaussian Process Regression
 
 Implements the "Correlated Product of Experts" (CPoE) Regression algorithm from the paper "Correlated Product of Experts for Sparse Gaussian Process Regression" by Manuel Schuerch, Dario Azzimonti, Alessio Benavoli and Marco Zaffalon.
 
@@ -24,4 +24,4 @@ Schuerch, M. and Azzimonti, D. and Benavoli A. and Zaffalon M.
   journal={arXiv preprint arXiv:2112.09519},
   year={2021}
 }
-```# CPoE
+```
