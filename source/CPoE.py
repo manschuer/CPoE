@@ -30,10 +30,19 @@ from invTak import invTak_11, preTak
 
 
 def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_test=None, f_test=None, priorN=None, seed=0, TRACE=False, gamma=0.01, E=5, jit=1e-3, B_increase=False, REL=1e-10):
-	# DD: Data objet 
-    #HYPERS: FIX, BATCH, STOCH
-    #Ps should be list, also in the scalar case
-    #if B_increase, then obviously only 1 P in Ps!!!!!!!!!!!!!
+	# X_train, 2D numpy array, samples per columns
+	# y_train, 1D numpy array
+	# kern, lik: kernel and likelihood objects from GPy
+	# J: number of experts, should be power of 2 
+	# C: degree of correlation
+	# p: sparsity parameter, between 0 and 1, 
+    # HYPERS: either 'FIX', 'BATCH', 'STOCH' for fixed hyperparameters, or with deterministic optimization (BATCH) or stochastic optimization
+    # X_test, y_test, f_test: (2D, 1D, 1D) numpy array for predictions
+    # priorN: prior for the Gaussian noise
+    # gamma: learning rate for stochastic optimization
+    # E: maximal number of epochs for stochastic optimization
+    # REL: relative tolerance for stochastic optimization
+    # jit: jiiter to add on the diagonal for stability reason
   
 
     
