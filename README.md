@@ -6,9 +6,17 @@ Implements the "Correlated Product of Experts" (CPoE) regression algorithm from 
 ## Usage
 
 We provide the source code for CPoE, comparisons and examples to demonstrate the usage.
-The main code is in source/CPoE.py and the jupyter notebooks experiments/example_comparison_1D.ipynb and experiments/example_comparison_1D.ipynb show the usage and comparisons to other methods.
-In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy) (tested up to version 1.9.6) since we use their implementation of the kernels.
-Currently, we are working on scalable implementation in Tensorflow/GPflow.
+The main code is in "source/CPoE.py" and the folder "experiments" contains several jupyter notebooks for running examples and experiments.
+In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy) (tested up to version 1.9.6) since we use their implementation of the kernels and likelihoods.
+
+[downloading and preprocessing of public data](https://github.com/manschuer/CPoE/experiments/download_data.ipynb)
+[example 1D](https://github.com/manschuer/CPoE/experiments/example_1D.ipynb)
+[example 2d](https://github.com/manschuer/CPoE/experiments/example_2D.ipynb)
+[experiment synthetic data](https://github.com/manschuer/CPoE/experiments/syntheticData.ipynb)
+[experiments real worl data](https://github.com/manschuer/CPoE/experiments/realData.ipynb)
+[experiment time series](https://github.com/manschuer/CPoE/experiments/timeSeries.ipynb)
+[comparison with deep mixture GPs](https://github.com/manschuer/CPoE/experiments/comparisonDSM_py.ipynb)
+[comparison with non-GP methods](https://github.com/manschuer/CPoE/experiments/comparisonNonGP.ipynb)
 
 
 ## Contributors

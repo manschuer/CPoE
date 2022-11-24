@@ -2892,7 +2892,7 @@ def _update_gradients(self):
 
 
 setattr(SparseGP, "_update_gradients", _update_gradients)
-print('new attribute for sparse GP!!')
+#print('new attribute for sparse GP!!')
 
 
 
