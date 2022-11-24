@@ -1,1 +1,1 @@
-## folder where to store the results
+## folder, where to store the results
