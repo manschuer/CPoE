@@ -9,11 +9,13 @@ We provide the source code for CPoE, comparisons and examples to demonstrate the
 The main code is in "source/CPoE.py" and the folder "experiments" contains several jupyter notebooks for running examples and experiments.
 In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy) (tested up to version 1.9.6) since we use their implementation of the kernels and likelihoods.
 
+## Overview of available notebooks
+
 - [downloading and preprocessing of public data](https://github.com/manschuer/CPoE/experiments/blob/main/download_data.ipynb)
 
 - [example 1D](https://github.com/manschuer/CPoE/experiments/blob/main/example_1D.ipynb)
 
-- [example 2d](https://github.com/manschuer/CPoE/experiments/blob/main/example_2D.ipynb)
+- [example 2D](https://github.com/manschuer/CPoE/experiments/blob/main/example_2D.ipynb)
 
 - [experiment synthetic data](https://github.com/manschuer/CPoE/experiments/blob/main/syntheticData.ipynb)
 
