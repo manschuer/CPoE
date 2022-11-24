@@ -11,21 +11,21 @@ In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy
 
 ## Overview of available notebooks
 
-- [downloading and preprocessing of public data](https://github.com/manschuer/CPoE/experiments/blob/main/download_data.ipynb)
+- [downloading and preprocessing of public data](https://github.com/manschuer/CPoE/blob/main/experiments/download_data.ipynb)
 
-- [example 1D](https://github.com/manschuer/CPoE/experiments/blob/main/example_1D.ipynb)
+- [example 1D](https://github.com/manschuer/CPoE/blob/main/experiments/example_1D.ipynb)
 
-- [example 2D](https://github.com/manschuer/CPoE/experiments/blob/main/example_2D.ipynb)
+- [example 2D](https://github.com/manschuer/CPoE/blob/main/experiments/example_2D.ipynb)
 
-- [experiment synthetic data](https://github.com/manschuer/CPoE/experiments/blob/main/syntheticData.ipynb)
+- [experiment synthetic data](https://github.com/manschuer/CPoE/blob/main/experiments/syntheticData.ipynb)
 
-- [experiments real world data](https://github.com/manschuer/CPoE/experiments/blob/main/realData.ipynb)
+- [experiments real world data](https://github.com/manschuer/CPoE/blob/main/experiments/realData.ipynb)
 
-- [experiment time series](https://github.com/manschuer/CPoE/experiments/blob/main/timeSeries.ipynb)
+- [experiment time series](https://github.com/manschuer/CPoE/blob/main/experiments/timeSeries.ipynb)
 
-- [comparison with deep mixture GPs](https://github.com/manschuer/CPoE/experiments/blob/main/comparisonDSM_py.ipynb)
+- [comparison with deep mixture GPs](https://github.com/manschuer/CPoE/blob/main/experiments//comparisonDSM_py.ipynb)
 
-- [comparison with non-GP methods](https://github.com/manschuer/CPoE/experiments/blob/main/comparisonNonGP.ipynb)
+- [comparison with non-GP methods](https://github.com/manschuer/CPoE/blob/main/experiments/comparisonNonGP.ipynb)
 
 
 ## Contributors
