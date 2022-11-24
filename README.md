@@ -27,7 +27,7 @@ In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy
 
 - [comparison with deep mixture GPs](https://github.com/manschuer/CPoE/blob/main/experiments//comparisonDSM_py.ipynb)
 
-- [comparison with non-GP methods](https://github.com/manschuer/CPoE/blob/main/experiments/comparisonNonGP.ipynb)
+- [comparison with non-GP methods](https://github.com/manschuer/CPoE/blob/main/experiments/comparison_non_GP.ipynb)
 
 
 ## Contributors
