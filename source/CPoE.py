@@ -29,7 +29,7 @@ from invTak import invTak_11, preTak
 
 
 """
-CPoE implements the Correlated Product of Experts algorithms based on the paper 
+CPoE implements the Correlated Product of Experts algorithm based on the paper 
 
 Correlated Product of Experts
 for Sparse Gaussian Process Regression
@@ -39,81 +39,94 @@ Manuel Schuerch,Dario Azzimonti1, Alessio Benavoli, Marco Zaffalon
 """
 
 def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_test=None, f_test=None, priorN=None, seed=0, TRACE=False, gamma=0.01, E=5, jit=1e-3, B_increase=False, REL=1e-10, **kwargs):
-	# X_train, 2D numpy array, samples per columns
-	# y_train, 1D numpy array
-	# kern, lik: kernel and likelihood objects from GPy
-	# J: number of experts, should be power of 2
-	# C: degree of correlation
-	# p: sparsity parameter, between 0 and 1,
-    # HYPERS: either 'FIX', 'BATCH', 'STOCH' for fixed hyperparameters, or with deterministic optimization (BATCH) or stochastic optimization
-    # X_test, y_test, f_test: (2D, 1D, 1D) numpy array for predictions
-    # priorN: prior for the Gaussian noise
-    # gamma: learning rate for stochastic optimization
-    # E: maximal number of epochs for stochastic optimization
-    # REL: relative tolerance for stochastic optimization
-    # jit: jiiter to add on the diagonal for stability reason
+	"""
+	Computes the CPoE GP approximation.
+
+	X_train: input training data, 2D numpy array, samples per columns
+	y_train: output training data, 1D numpy array
+	kern: kernel object from GPy
+	lik: likelihood object from GPy
+	J: number of experts, ideally power of 2
+	C: degree of correlation between the experts, between 1 and J
+	p: sparsity parameter, between 0 and 1,
+	HYPERS: either 'FIX', 'BATCH', 'STOCH' for fixed hyperparameters, deterministic optimization (BATCH) or stochastic optimization (STOCH)
+	X_test, y_test, f_test: (2D, 1D, 1D) numpy array for predictions for which prediction are done, if missing, the prediction for the training data is computed
+	priorN: prior GPy object for the Gaussian noise
+	gamma: learning rate for stochastic optimization
+	E: maximal number of epochs for stochastic optimization
+	REL: relative tolerance for stochastic optimization stopping criteria
+	jit: jiiter to add on the diagonal for stability reason
+	"""
+
+
+	###################################
+	## DATA
+	###################################
+
+	# if no test data is provided, the training data is set to it
+	if (X_test is None) or (y_test is None):
+		X_test = X_train
+		y_test = y_train
+
+	# the data is wrapped into a Data object
+	DD = constructData(X_train, y_train, X_test, y_test, f_test)
+
+
+	###################################
+	## HYPERPARAMETER ESTIMATION
+	###################################
+
+	ST = time.time()
+	if not HYPERS=='FIX':
+
+		###################################
+		## COMPUTE PARTITION WITH KDTREE
+		###################################
+		PP = Partition(DD)
+
+		if B_increase:
+			Kinc = np.int( np.ceil( J/C  ) )
+		else:
+			Kinc = J
+		PP.compute_partition2(int(DD.Ntrain/Kinc), col_start=0, seed=seed, randOrder=False)
+		IND = Independent( DD, Kinc, kern, lik,  PP=PP, SPARSE=False, priorNoise=priorN)
+
+
+		###################################
+		## HYPERPARAMETER ESTIMATION
+		###################################
+
+		if HYPERS=='BATCH':
+			IND.opt_batch(GTOL=5e-1, maxF=300, TRACE=TRACE)
+		elif HYPERS=='STOCH':
+			IND.run_epochs(E=E, gamma=gamma, U=1, TRACE=TRACE, PERM=True, PRINT=True, REL=REL)
+
+		kern = IND.kern
+		lik = IND.likelihood
+
+	timeOPT= time.time()-ST
+
+	###################################
+	## RUN CPOE for fixed hyperparameters
+	###################################
+	BGP = BlockGP(kern, DD, lik)
+	BGP.run0(J, C-1, sp=p, jit=jit, KMEANS=False, KDTREE=True, B_stop=int(DD.Ntrain/J), seed=seed, TIMEOPT=timeOPT, J_MODE='FIX')
+	RES = BGP.run_opt(OPT=False)
+
+
+	return RES, BGP
 
 
 
-    ###################################
-    ## DATA
-    ###################################
-
-    # if no test data is provided, the training data is set to it
-    if (X_test is None) or (y_test is None):
-    	X_test = X_train
-    	y_test = y_train
-
-    # the data
-    DD = constructData(X_train, y_train, X_test, y_test, f_test)
-
-
-    ###################################
-    ## HYPERPARAMETER ESTIMATION
-    ###################################
-
-    ST = time.time()
-    if not HYPERS=='FIX':
-
-        # compute partition with KDTREE
-        PP = Partition(DD)
-
-        if B_increase:
-            Kinc = np.int( np.ceil( J/C  ) )
-        else:
-            Kinc = J
-
-        PP.compute_partition2(int(DD.Ntrain/Kinc), col_start=0, seed=seed, randOrder=False)
-
-        IND = Independent( DD, Kinc, kern, lik,  PP=PP, SPARSE=False, priorNoise=priorN)
-
-        if HYPERS=='BATCH':
-            IND.opt_batch(GTOL=5e-1, maxF=300, TRACE=TRACE)
-        elif HYPERS=='STOCH':
-            IND.run_epochs(E=E, gamma=gamma, U=1, TRACE=TRACE, PERM=True, PRINT=True, REL=REL)
-
-        kern = IND.kern
-        lik = IND.likelihood
-
-    timeOPT= time.time()-ST
-
-	# for given hyperparameters, run CPoE
-    BGP = BlockGP(kern, DD, lik)
-    BGP.run0(J, C-1, sp=p, jit=jit, KMEANS=False, KDTREE=True, B_stop=int(DD.Ntrain/J), seed=seed, TIMEOPT=timeOPT, J_MODE='FIX')
-    RES = BGP.run_opt(OPT=False)
-
-
-    return RES, BGP
 
 
 
 
 
 
-
-
-
-
+"""
+Main 
+"""
 class BlockGP:
 	def __init__(self, kern, DD, lik):
 
@@ -124,14 +137,10 @@ class BlockGP:
 
 	def run0(self, K, P, sp=1, jit=1e-10, KMEANS=True, seed=0, randOrder=False, sortDim=-1, PROJ='', bw=[None], KDTREE=False, B_stop=100, \
 				BAND=False, J_MODE='FIX', DUMMY=False, TIMEOPT=0, MIDDLE_CENTER=False, alpha=1):
-	# cluster Inds not really working
+
 
 		START = time.time()
-		##### J_MODE:
-		# 'FIX': computed by J=int(sp*B)
-		# 'MAX': used max cluster size
-		# 'MIN': used min cluster size
-
+	
 
 
 		start = time.time()
@@ -374,7 +383,7 @@ class BlockGP:
 
 			if SUCCESSORS:
 				argLabel = [ {'label':'successors'}, {}]
-			    #backward neighbours
+				#backward neighbours
 				for il, ll in enumerate(self.successors[kj]):
 
 					plt.plot(centers[ll,0], centers[ll,1], 'go', markersize=10, **argLabel[np.minimum(il,1)]);
@@ -1259,7 +1268,7 @@ class BlockGP:
 		X = self.Xdata_block[self.LOOKUP[self.ipp_m,self.ipp_m.T][i,j]]
 
 		if self.LOOKUPtranspose_perm[i,j]==1:
-		    X = X.T
+			X = X.T
 		return X
 
 
@@ -1573,7 +1582,7 @@ class BlockGP:
 
 
 
-    ## parameters #########################################################
+	## parameters #########################################################
 	def init_params(self):
 
 
@@ -1753,25 +1762,25 @@ def df_BGP( params, BGP):
 
 
 class Perm():
-    def __init__(self, p):
-        self.p = p
-        self.ip = np.argsort(p)
+	def __init__(self, p):
+		self.p = p
+		self.ip = np.argsort(p)
 
-        self.p_ = self.p[:,np.newaxis]
-        self.ip_ = self.ip[:,np.newaxis]
+		self.p_ = self.p[:,np.newaxis]
+		self.ip_ = self.ip[:,np.newaxis]
 
-    def Pvec(self, vec):
+	def Pvec(self, vec):
 
-        return vec[self.p]
+		return vec[self.p]
 
-    def Pmat(self, Mat):
+	def Pmat(self, Mat):
 
-        return Mat[self.p_, self.p_.T]
+		return Mat[self.p_, self.p_.T]
 
-    def iPvec(self, vec):
+	def iPvec(self, vec):
 
-        return vec[self.ip]
+		return vec[self.ip]
 
-    def iPmat(self, Mat):
+	def iPmat(self, Mat):
 
-        return Mat[self.ip_, self.ip_.T]
+		return Mat[self.ip_, self.ip_.T]
