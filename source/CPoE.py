@@ -1,29 +1,22 @@
 import numpy as np
 import GPy, pickle, time
 import pandas as pd
-
 from incremental_run import Partition, ResultRun
-from mix import diag_AtKB, inv_logDet, inv_logDet_jit, dot3lr, dot3rl, diag_HtKH #, inv_jit, inv_c, inv_c,
-
+from mix import diag_AtKB, inv_logDet, inv_logDet_jit, dot3lr, dot3rl, diag_HtKH 
 from numpy.linalg import cholesky as cholesky_np
 from scipy.linalg import cholesky_banded, cho_solve_banded
 from scipy.linalg import inv
-
 from scipy.sparse import bsr_matrix, spdiags
 from sksparse.cholmod import cholesky, analyze
 from sksparse.cholmod import cholesky_AAt
 from scipy.sparse import csc_matrix, csr_matrix, triu, tril, find, isspmatrix_csc, lil_matrix
-
 import imageio
 from matplotlib import pyplot as plt
-
 from utils.incremental_p import PARAM
 from utils.incremental_p import Independent
 from incremental_run import Partition, constructData
-
 from utils.numpy_lru_cache_decorator import np_cache
 from scipy.optimize import minimize
-
 from invTak import invTak_11, preTak
 
 
@@ -125,7 +118,7 @@ def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_te
 
 
 """
-Main 
+Main class for computing marginal posteriors of correlated blocks.
 """
 class BlockGP:
 	def __init__(self, kern, DD, lik):
@@ -140,44 +133,28 @@ class BlockGP:
 
 
 		START = time.time()
-	
-
-
 		start = time.time()
-
-		#if not (self.DD.Ntrain % K) == 0:
-			#print('Ntrain/K not integer!!')
 
 		if not P<K:
 			print('P has to be smaller than K')
 
-		#print('p ',sp)
 
 		self.K = K
 		self.P = P
 		self.B = int(self.DD.Ntrain/self.K)
 		self.J = int(np.ceil(sp*self.B))
-		#print('J=',self.J)
 		self.jit = jit
-
 		self.alpha = alpha # alpha=1: FITC, alpha=1e-10: VFE
-
 		self.J_MODE = J_MODE
 		self.seed = seed
-
 		self.DUMMY = DUMMY
-
-
-		#self.HVH_CORRECT = HVH_CORRECT
 		self.MIDDLE_CENTER = MIDDLE_CENTER
 
 
-
+		# make partition
 		timePart = self.makePartition(KMEANS=KMEANS, randOrder=randOrder, seed=seed, sortDim=sortDim, PROJ=PROJ, bw=bw, KDTREE=KDTREE, B_stop=B_stop)  ##time
 
-
-
-
+		# compute predecessor structure
 		self.compute_predecessors(BAND) ## always blockwise
 		self.compute_predecessorPuk()
 		self.init_params()
@@ -185,13 +162,10 @@ class BlockGP:
 
 		self.time0 = time.time() - START + TIMEOPT
 
-		#print('time0 ',self.time0)
 
-
-
+	# 
 	def run1(self):
 
-		#START = time.time()
 
 		timesPrec = self.computePrecisionBlock( )
 
@@ -205,15 +179,11 @@ class BlockGP:
 
 		self.lml, timeLML = self.log_marg_lik2()
 
-		#print('precision ', timesPrec)
-		#print('fac ', timeFac)
-		#print('sig ', timeSig)
-		#print('lml ', timeLML)
 
 
 	def run1b(self):
 
-		self.compute_K_sparse() ### not efficient...
+		self.compute_K_sparse() 
 		self.update_parms()
 
 	def run2(self):
@@ -222,20 +192,11 @@ class BlockGP:
 
 		tS = time.time()
 		self.compute_Sigs22sp()
-		#print('--Sigs',time.time() - tS)
 
 		tS = time.time()
-		#self.predict_Xt2()
 		self.predict_Xt2b()
-		#print('--Preds',time.time() - tS)
-
-
-
 
 		self.time2 = time.time() - START
-
-
-
 		self.timeA = self.time0 + self.time1 + self.time2
 
 
@@ -244,15 +205,13 @@ class BlockGP:
 		RES = ResultRun(mss1, vss1, self.makeCI(mss1,vss1), 'CPoE('+str(self.P+1)+')', time=self.timeA+time.time()-start, obj=self, OBJ=self, lik=self.lml)
 
 
-
-
 		return RES
 
 
+	# run the hyperparameter optimization
 	def run_opt(self, OPT=True, GTOL=1e-2, maxF=100):
 
 		START = time.time()
-
 
 
 		if OPT:
@@ -266,8 +225,6 @@ class BlockGP:
 
 
 		self.time1 = time.time() - START
-
-		#print('time1 ',self.time1)
 
 
 		return self.run2()
@@ -412,14 +369,6 @@ class BlockGP:
 
 
 
-
-	# def eval_against_full(self, mFull, vFull):
-	# 	# vFull without noise!!!!!!!
-
-	# 	names = ['v/q_y', 'PoE_y', 'MV___', 'v/q_f', 'PoE_f']
-	# 	for r in range(self.Ms.shape[0]):
-	# 		kls = KL1(mFull, self.Ms[r,:], vFull, self.Vs[r,:])
-	# 		print(names[r],np.mean(kls)*1e3)
 
 	def makeCI(self, m, v):
 
@@ -678,7 +627,7 @@ class BlockGP:
 		Fks2 = []
 		#self.iQks2 = []
 
-		self.A_Bs = []############################################storage!!!!! without k=0!!
+		self.A_Bs = []
 
 		#colInds2 = []   #### block columns
 		self.colInds_j = []  #### individual columnd indeces, repeated
@@ -689,28 +638,9 @@ class BlockGP:
 		timeInvQ = 0
 		timeFQF = 0
 
-		# TI1 = TI2 = 0
-		# TIA = TIB = 0
-
 
 
 		self.Aks = [ self.Xks[k][np.array(  np.linspace(0,len(self.yks[k])-1,self.J, endpoint=True ) , dtype=int),:]  for k in range(self.K)]
-
-		#print('added jitter to Aks!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
-
-		# if not self.HVH_CORRECT:
-		# 	# data/likelihood update
-		# 	start = time.time()
-		# 	self.Hs, vs, iK_As = self.compMat_lik()
-		# 	timeFQlik += time.time() -start
-
-
-		# 	self.Vs = [ vs[k] + self.lik.variance[0]  for k in range(self.K)]
-		# 	gks = [ self.Hs[k].T/self.Vs[k]  for k in range(self.K)]
-		# 	HVHs = [ np.dot( gks[k], self.Hs[k]) for k in range(self.K)]
-		# 	rks = [ np.dot( gks[k], self.yks[k]) for k in range(self.K)]
-
 
 
 		if self.P==0:
@@ -851,88 +781,10 @@ class BlockGP:
 			self.HVH = bsr_matrix((np.array( self.HVHks ),range(self.K),range(self.K+1)), shape=(sizeM, sizeM))
 
 
-		#print('------FQF fill ', self.FQF.nnz / np.prod(self.FQF.shape), ' / ' ,self.FQF.nonzero()[0].shape[0] / np.prod(self.FQF.shape))
-		########################### ********************************************************************************
 		timeFQF += time.time() -start1
-
-
-
-
-		# if self.HVH_CORRECT:
-
-		# 	print('not efficient HVH!!!!!!!!!!!!!!!!!!!!!')
-
-		# 	def index_block(ind, M):
-		# 		return np.repeat( ind*M, M )   +  np.tile( np.arange(M), len(ind) )
-
-
-
-		# 	# construct correct HVH
-		# 	HH = np.zeros((self.K*self.B,self.K*self.J))
-		# 	iVVdiag = np.zeros(self.K*self.B)
-		# 	self.Vs = []
-		# 	self.Hs = []
-		# 	self.HVHks = []
-		# 	self.Apsi = []
-		# 	for k in range(self.K):
-
-		# 		AA = np.vstack( [self.Aks[ j ] for j in  self.predecessors_and_k_C[k] ])
-		# 		XX = self.Xks[k]
-		# 		KXX = self.kern.K(XX)
-		# 		KAX = self.kern.K(AA, XX)
-		# 		KAA = self.kern.K(AA)
-		# 		iKAA = np.linalg.inv(KAA + np.eye(KAA.shape[0])*self.jit)
-		# 		H = np.dot(KAX.T,iKAA)
-		# 		V = np.diag( KXX - np.dot(H, KAX)  + self.lik.variance[0]  ) ##only diag mult!!
-
-		# 		self.Vs.append(V)
-		# 		self.Hs.append(H)
-		# 		self.HVHks.append( np.dot( H.T / V, H)    )
-		# 		self.Apsi.append(AA)
-
-		# 		iV = 1/V
-
-
-		# 		pk = index_block( self.predecessors_and_k_C[k], self.J )[:,None]
-		# 		kk = index_block( np.array([k]), self.B )[:,None]
-		# 		HH[kk,pk.T] = H
-		# 		iVVdiag[kk[:,0]] = iV
-
-		# 	HVH = np.dot( HH.T * iVVdiag, HH)
-
-		# 	self.HH = HH
-
-		# 	self.HVH = bsr_matrix(HVH, blocksize=(self.J,self.J), shape=(self.K*self.J, self.K*self.J))
-		# 	self.b = np.dot( HH.T * iVVdiag, np.hstack(self.yks) )
-
-
-
-
-		# else:
-
-		# 	self.HVH = bsr_matrix((np.array( HVHs ),range(self.K),range(self.K+1)), shape=(sizeM, sizeM))
-		# 	self.b = np.hstack(rks)
-
-
 		self.iSig =  self.FQF + self.HVH
 
-
-		#print('------iSig fill ', self.iSig.nnz / np.prod(self.iSig.shape), ' / ' ,self.iSig.nonzero()[0].shape[0] / np.prod(self.iSig.shape))
-
-
-		#self.b = np.hstack(rks)
-
-
 		timeTot = time.time() - startTot
-
-		#print('timeTot: ',timeTot)
-		#print('timeFQlik',timeFQlik)
-		#print('timFQtrans',timeFQtrans)
-		#print('timeInvQ',timeInvQ)
-		#print('timeFQF',timeFQF)
-
-
-
 
 
 		return  timeTot
@@ -979,10 +831,6 @@ class BlockGP:
 			else:
 				BB = None
 
-
-
-
-
 			# update the kernel derivatives
 			PAR.update_grad(self.Aks[k], BB, self.Xks[k])
 
@@ -997,9 +845,6 @@ class BlockGP:
 					dK_AB = self.dKs_(PAR, 'dK_AB', wp)
 				dK_XA = self.dKs_(PAR, 'dK_XA', wp)
 				dk_xx = self.dKs_(PAR, 'dk_xx', wp)
-
-
-
 
 
 				# likelihood update
@@ -1083,16 +928,7 @@ class BlockGP:
 			self.diSig = diSig
 			self.dFQF = dFQF
 
-			#KK = self.kern.K(np.vstack(self.Aks)) #it is numerically inaccurate
-			#sumKS = 0.5*np.sum(dFQF.multiply( csc_matrix(KK, shape=(KK.shape)) )) ### also with K???
-
-			#sumKS = 0.5*np.sum(dFQF.multiply(self.facS.inv() )) ### also with K???
-
 			sumKS = 0.5*np.sum(dFQF.multiply(self.K_sp )) ### also with K???
-
-
-
-
 
 
 			PAR.dliks[wp] = dyVy[wp]  + bmiSig + sumSigdiSig + sumKS
@@ -1109,12 +945,6 @@ class BlockGP:
 			#print('conv',time.time()-tf)
 		else:
 			iSig_csc = self.iSig
-
-		#print('ordering_method=natural')
-
-		#print('ordering_method is natural!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-		#self.factor = cholesky(iSig_csc, ordering_method='natural') # compute cholesky factorization
-
 
 		shape = csr_matrix( (np.arange(1,len(self.iSig.indices)+1), self.iSig.indices, self.iSig.indptr), shape=(self.K, self.K) )  #+1 beacuase otherwise 0 is sparse
 		fac0 = analyze(csc_matrix(shape))
@@ -1141,10 +971,6 @@ class BlockGP:
 
 		self.m_post = self.factor(self.b[self.ppi0_long])[self.ipp0_long] # compute posterior mean
 
-
-
-		#print('------L fill ', self.factor.L().nnz / np.prod(self.factor.L().shape), ' / ' ,self.factor.L().nonzero()[0].shape[0] / np.prod(self.factor.L().shape))
-
 		return self.factor, self.m_post
 
 
@@ -1156,17 +982,10 @@ class BlockGP:
 			allInds = find(self.FQF[kj,:])[1]
 			self.condSets.append( allInds[allInds < kj] )
 
-		#print('timeCondSet ',time.time() - ti0)
-
-
-
 
 	def compute_Sig_sparse3(self):
 
 		timeTot = time.time()
-
-
-
 
 
 		stT = time.time()
@@ -1195,14 +1014,6 @@ class BlockGP:
 
 
 		timeTot = time.time() - timeTot
-
-		#print('------Sig fill ', self.Sig.nnz / np.prod(self.Sig.shape), ' / ' ,self.Sig.nonzero()[0].shape[0] / np.prod(self.Sig.shape))
-
-
-		#print('timeTot',timeTot)
-		#print(' timePre',tiPre)
-		#print(' timeInv',tiInv)
-		#print(' timePost',tiPost)
 
 
 
@@ -1735,11 +1546,6 @@ def f_df_BGP( params, BGP):
 	BGP.run1()
 	BGP.run1b()
 
-	# dliks = np.zeros(0)
-	# for par in BGP.PARAMS:
-
-	# 	if par.EST:
-	# 		dliks = np.hstack( [dliks, par.dlik + par.get_prior_grad() ] )
 
 	print(np.exp(params))
 	print(BGP.lml, BGP.dliks)
