@@ -28,6 +28,15 @@ from invTak import invTak_11, preTak
 
 
 
+"""
+CPoE implements the Correlated Product of Experts algorithms based on the paper 
+
+Correlated Product of Experts
+for Sparse Gaussian Process Regression
+Manuel Schuerch,Dario Azzimonti1, Alessio Benavoli, Marco Zaffalon
+(https://arxiv.org/pdf/2112.09519.pdf)
+
+"""
 
 def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_test=None, f_test=None, priorN=None, seed=0, TRACE=False, gamma=0.01, E=5, jit=1e-3, B_increase=False, REL=1e-10, **kwargs):
 	# X_train, 2D numpy array, samples per columns
@@ -46,15 +55,22 @@ def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_te
 
 
 
+    ###################################
+    ## DATA
+    ###################################
 
-
-
+    # if no test data is provided, the training data is set to it
     if (X_test is None) or (y_test is None):
     	X_test = X_train
     	y_test = y_train
 
+    # the data
     DD = constructData(X_train, y_train, X_test, y_test, f_test)
 
+
+    ###################################
+    ## HYPERPARAMETER ESTIMATION
+    ###################################
 
     ST = time.time()
     if not HYPERS=='FIX':
