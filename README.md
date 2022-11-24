@@ -23,8 +23,6 @@ In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy
 
 - [experiments with real world data and stochastic optimization](https://github.com/manschuer/CPoE/blob/main/experiments/realData2.ipynb)
 
-- [experiment time series](https://github.com/manschuer/CPoE/blob/main/experiments/timeSeries.ipynb)
-
 - [comparison with deep mixture GPs](https://github.com/manschuer/CPoE/blob/main/experiments//comparisonDSM_py.ipynb)
 
 - [comparison with non-GP methods](https://github.com/manschuer/CPoE/blob/main/experiments/comparison_non_GP.ipynb)

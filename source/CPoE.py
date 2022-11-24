@@ -89,11 +89,13 @@ def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_te
 		## HYPERPARAMETER ESTIMATION
 		###################################
 
+		# compute either batch or stochastic optimization
 		if HYPERS=='BATCH':
 			IND.opt_batch(GTOL=5e-1, maxF=300, TRACE=TRACE)
 		elif HYPERS=='STOCH':
 			IND.run_epochs(E=E, gamma=gamma, U=1, TRACE=TRACE, PERM=True, PRINT=True, REL=REL)
 
+		# use the optimized kernel and likelihood
 		kern = IND.kern
 		lik = IND.likelihood
 
@@ -1452,85 +1454,85 @@ class BlockGP:
 
 
 
-
+   
 
 def invEE(M, jit=1e-15):
 
-	return inv(M + np.eye(M.shape[0])*jit)
+    return inv(M + np.eye(M.shape[0])*jit)
 
 def comp_kernR(kern, R, jit=1e-15):
 
-	Krr = kern.K(R)
-	iKrr = invEE(Krr, jit)
+    Krr = kern.K(R)
+    iKrr = invEE(Krr, jit)
 
-	return iKrr, Krr
+    return iKrr, Krr
 
 def comp_kernX(kern, X, R, iKrr, DIAG=True):
 
-	Kxr = kern.K(X,R)
-	H = np.dot(Kxr, iKrr)
+    Kxr = kern.K(X,R)
+    H = np.dot(Kxr, iKrr)
 
 
-	#Q = dot3lr(Kxr, iKrr, Kxr.T)
-	if DIAG:
-		Q = diag_HtKH(Kxr.T, iKrr)
-		kxx = kern.Kdiag(X)
-		D = kxx - Q
-	else:
-		#Q = dot3lr(Kxr, iKrr, Kxr.T)		## it is already H
-		Q = np.dot(H, Kxr.T)
-		Kxx = kern.K(X)
-		D = Kxx - Q
+    #Q = dot3lr(Kxr, iKrr, Kxr.T)
+    if DIAG:
+        Q = diag_HtKH(Kxr.T, iKrr)
+        kxx = kern.Kdiag(X)
+        D = kxx - Q
+    else:
+        #Q = dot3lr(Kxr, iKrr, Kxr.T)       ## it is already H
+        Q = np.dot(H, Kxr.T)
+        Kxx = kern.K(X)
+        D = Kxx - Q
 
-	return H, Q, D
+    return H, Q, D
 
 
 
 def comp_FQ(kern, A, B , DIAG=False, jit=1e-15):
-	# for data A given data B
+    # for data A given data B
 
-	iK_BB, K_BB = comp_kernR(kern, B, jit=jit)
-	F_AB, D_AB, Q_AB = comp_kernX(kern, A, B, iK_BB, DIAG=DIAG)
+    iK_BB, K_BB = comp_kernR(kern, B, jit=jit)
+    F_AB, D_AB, Q_AB = comp_kernX(kern, A, B, iK_BB, DIAG=DIAG)
 
 
-	return F_AB, Q_AB, K_BB, iK_BB, D_AB
+    return F_AB, Q_AB, K_BB, iK_BB, D_AB
 
 
 def pred_y_diag(m,P,Fs,qs,sig2n):
-	ms, vs = transDiag(m,P,Fs,sig2n)
-	return ms, vs + sig2n
+    ms, vs = transDiag(m,P,Fs,sig2n)
+    return ms, vs + sig2n
 
 def transDiag(m,P,Fs,qs):
-	ms = np.dot(Fs,m)
-	vs = diag_HtKH(Fs.T,P) + qs
-	return ms, vs
+    ms = np.dot(Fs,m)
+    vs = diag_HtKH(Fs.T,P) + qs
+    return ms, vs
 
 
 def trans(m,P,F,Q):
-	m1 = np.dot(F,m)
-	P1 = dot3lr(F,P,F.T) + Q
-	return m1, P1
+    m1 = np.dot(F,m)
+    P1 = dot3lr(F,P,F.T) + Q
+    return m1, P1
 
 
 def KL1(m1,m2,v1,v2):
-	return 0.5*(np.log(v2/v1) + (v1 + (m1-m2)**2)/v2 - 1)
+    return 0.5*(np.log(v2/v1) + (v1 + (m1-m2)**2)/v2 - 1)
 
 def SE(m1,m2):
-	return (m1-m2)**2
+    return (m1-m2)**2
 
 def KL1m(m1,m2,P1,P2):
-	iP1, lD1 = inv_logDet(P1)
-	iP2, lD2 = inv_logDet(P2)
-	#return 0.5*(np.trace(np.dot(iP2,P1)) + lD2 - lD1 + dot3lr( (m2-m1).T,iP2,(m2-m1) )  - len(m1))
+    iP1, lD1 = inv_logDet(P1)
+    iP2, lD2 = inv_logDet(P2)
+    #return 0.5*(np.trace(np.dot(iP2,P1)) + lD2 - lD1 + dot3lr( (m2-m1).T,iP2,(m2-m1) )  - len(m1))
 
-	tr = 0.5*np.trace(np.dot(iP2,P1))
-	lDs = 0.5*(lD2 - lD1)
-	sq = 0.5*dot3lr( (m2-m1).T,iP2,(m2-m1) )
-	C = -0.5*len(m1)
+    tr = 0.5*np.trace(np.dot(iP2,P1))
+    lDs = 0.5*(lD2 - lD1)
+    sq = 0.5*dot3lr( (m2-m1).T,iP2,(m2-m1) )
+    C = -0.5*len(m1)
 
-	return tr+lDs+sq+C, (tr,lDs,sq,C)
-	#return tr+lDs+sq+C, (tr+C,lDs,sq)
-	#return tr+lDs+sq+C, (tr+lDs,sq,C)
+    return tr+lDs+sq+C, (tr,lDs,sq,C)
+    #return tr+lDs+sq+C, (tr+C,lDs,sq)
+    #return tr+lDs+sq+C, (tr+lDs,sq,C)
 
 
 
@@ -1541,52 +1543,52 @@ def KL1m(m1,m2,P1,P2):
 def f_df_BGP( params, BGP):
 
 
-	BGP.set_PARAMS(np.exp(params))
+    BGP.set_PARAMS(np.exp(params))
 
-	BGP.run1()
-	BGP.run1b()
+    BGP.run1()
+    BGP.run1b()
 
 
-	print(np.exp(params))
-	print(BGP.lml, BGP.dliks)
-	return BGP.lml, BGP.dliks
+    print(np.exp(params))
+    print(BGP.lml, BGP.dliks)
+    return BGP.lml, BGP.dliks
 
 
 def f_BGP( params, BGP ):
 
-	f, _ = f_df_BGP(params, BGP)
+    f, _ = f_df_BGP(params, BGP)
 
-	return -f
+    return -f
 
 def df_BGP( params, BGP):
 
-	_, df = f_df_BGP(params, BGP)
+    _, df = f_df_BGP(params, BGP)
 
-	return -df * np.exp(params)
+    return -df * np.exp(params)
 
 
 
 
 class Perm():
-	def __init__(self, p):
-		self.p = p
-		self.ip = np.argsort(p)
+    def __init__(self, p):
+        self.p = p
+        self.ip = np.argsort(p)
 
-		self.p_ = self.p[:,np.newaxis]
-		self.ip_ = self.ip[:,np.newaxis]
+        self.p_ = self.p[:,np.newaxis]
+        self.ip_ = self.ip[:,np.newaxis]
 
-	def Pvec(self, vec):
+    def Pvec(self, vec):
 
-		return vec[self.p]
+        return vec[self.p]
 
-	def Pmat(self, Mat):
+    def Pmat(self, Mat):
 
-		return Mat[self.p_, self.p_.T]
+        return Mat[self.p_, self.p_.T]
 
-	def iPvec(self, vec):
+    def iPvec(self, vec):
 
-		return vec[self.ip]
+        return vec[self.ip]
 
-	def iPmat(self, Mat):
+    def iPmat(self, Mat):
 
-		return Mat[self.ip_, self.ip_.T]
+        return Mat[self.ip_, self.ip_.T]

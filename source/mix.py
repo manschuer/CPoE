@@ -10,6 +10,11 @@ from scipy.linalg import lapack
 
 
 
+"""
+Different helper functions for GPs.
+Inparticular, it implements the derivative for the kernels, which are used in the optimization.
+"""
+
 def dK_dX(kern, X, X2=None, dK_dR=None):
     # in place
     # derivative wrt to the second argument!!!!!!!!!!!!!!!!!!!!!!!!
@@ -346,3 +351,8 @@ from numpy.linalg import inv as inv_np
 def invEE(M, jit=1e-15):
 
     return inv_np(M + np.eye(M.shape[0])*jit)
+
+
+
+
+

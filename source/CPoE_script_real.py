@@ -11,38 +11,32 @@ from incremental_run import Data, loadData, plot_kernels_sample_1d, plot_kernels
 from incremental_run import Partition, RunFullGP, RunSparseGP, RunPoE, RunGRBCM, RunINC, statsDF, ResultRun
 from utils.incremental_p import Independent
 from CPoE import BlockGP
-
 import gc
-
 from utils.SRGP.RECC import REC
 from utils.SRGP.optim import Adam
-
-
 from sklearn.neural_network import MLPRegressor
 from sklearn.linear_model import LinearRegression
-
 import xgboost as xgb
 
 
 
 
-
+"""
+Script for running experiments for real world datasets for CPoE, full GP, PoE, sparse GP and non-GP regression methods.
+"""
 class SCRIPT1:
 	def __init__(self, loc_csv, Nreps=1, seed0=0, name='', Ntestmax=1000, NtestFIX=False, FULL=True, kernelMODE=1, path_results = ''):
 
 		self.Nreps = Nreps
-
 		self.loc_csv = loc_csv
 
 		self.seeds = np.arange(Nreps)+seed0
-
 		self.name = name
 
 		self.NtestFIX = NtestFIX
 		self.Ntestmax = Ntestmax
 
 		self.FULL = FULL
-
 		self.kernelMODE = kernelMODE
 		self.path_results = path_results
 
@@ -53,7 +47,9 @@ class SCRIPT1:
 		print('Ntrain=',DD.Ntrain)
 		print('Ntest=',DD.Ntest)
 
-
+	"""
+	Compute training/test data for given data set.
+	"""
 	def makeData(self, loc_csv, Ntestfrac=0.1, seed=0):
 
 		data = pd.read_csv(loc_csv, index_col=0)
@@ -83,24 +79,21 @@ class SCRIPT1:
 		DD.Xt_IN = None #np.zeros(Ntest)==False
 		DD.D = DD.X_train.shape[1]
 
-
 		return DD
 
+	"""
+	Compute 3 different kernels. SE and more flexibel kernel.
+	"""
 	def makeKernel(self, D):
 
 		if self.kernelMODE==1:
 			kern = GPy.kern.RBF(input_dim = D, variance = 1, lengthscale = np.ones(D), ARD = True)
 		elif self.kernelMODE==2:
-			#kernRBF = GPy.kern.RBF(input_dim = D, variance = 1, lengthscale = np.ones(D), ARD = True)
-			#kernCOS = GPy.kern.Cosine(input_dim = D)
 			kernRBF2 = GPy.kern.RBF(input_dim = D, variance = 1, lengthscale = np.ones(D)*10, ARD = True)
 			kernCOS2 = GPy.kern.Cosine(input_dim = D, lengthscale=10)
 			kernMLP = GPy.kern.MLP(input_dim = D)
 			kernLIN = GPy.kern.Linear(input_dim = D)
-			#kern = kernRBF * kernCOS + kernRBF2 * kernCOS2  + kernLIN
-			#kern = kernRBF * kernCOS + kernRBF2 * kernCOS2 + kernMLP + kernLIN
 			kern = kernRBF2 * kernCOS2 + kernMLP + kernLIN
-			#kern = kernRBF * kernCOS  + kernMLP + kernLIN
 		elif self.kernelMODE==3:
 			kernRBF = GPy.kern.RBF(input_dim = D, variance = 1, lengthscale = np.ones(D), ARD = True)
 			kernCOS = GPy.kern.Cosine(input_dim = D)
