@@ -1,12 +1,12 @@
 import GPy
 from matplotlib import pyplot as plt
 import numpy as np
+import time, pickle
+
 from PoE_2 import PoE
 from PoE_2 import Expert
 import pandas as pd
-from incremental_p import INCR
-from incremental_p import Independent
-
+from utils.incremental_p import INCR, Independent
 
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import pdist, squareform
@@ -15,12 +15,8 @@ import properscoring as ps
 import imageio
 #from IPython.display import Image
 import matplotlib.cm as cm
-
-
-import time, pickle
-
 import functools
-from numpy_lru_cache_decorator import np_cache
+from utils.numpy_lru_cache_decorator import np_cache
 
 from scipy.optimize import minimize
 
@@ -136,13 +132,13 @@ class RunPoE:
 		if KDTREE:
 			PP.compute_partition2(B_stop=B_stop, seed=seed)
 			self.K = PP.K
-			print('new K is', self.K)
+			#print('new K is', self.K)
 		else:
 			PP.compute_partition(K, KMEANS=KMEANS, randOrder=randOrder, seed=seed, sortDim=sortDim, PROJ=PROJ, bw=bw, clusterInds=clusterInds)
 		
 		self.timePar = time.time() - startPar
 
-		print(self.timePar)
+		#print(self.timePar)
 
 		self.PP = PP
 		
@@ -462,7 +458,7 @@ class RunGRBCM:
 		if KDTREE:
 			PP.compute_partition2_GRBCM(B_stop=B_stop, seed=seed)
 			self.K = PP.K
-			print('new K is', self.K)
+			#print('new K is', self.K)
 		else:
 		
 			PP.compute_partitionGRBCM(K, KMEANS=KMEANS, randOrder=randOrder, seed=seed)
@@ -2276,7 +2272,7 @@ class Partition:
 
 		self.K += 1
 
-		print('self.K',self.K)
+		#print('self.K',self.K)
 
 		self.compute_centers_and_distances()
 		

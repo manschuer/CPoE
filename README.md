@@ -19,7 +19,9 @@ In order to run the algorithm, you need [GPy](https://github.com/SheffieldML/GPy
 
 - [experiment synthetic data](https://github.com/manschuer/CPoE/blob/main/experiments/syntheticData.ipynb)
 
-- [experiments real world data](https://github.com/manschuer/CPoE/blob/main/experiments/realData.ipynb)
+- [experiments with real world data and deterministic optimization](https://github.com/manschuer/CPoE/blob/main/experiments/realData1.ipynb)
+
+- [experiments with real world data and stochastic optimization](https://github.com/manschuer/CPoE/blob/main/experiments/realData2.ipynb)
 
 - [experiment time series](https://github.com/manschuer/CPoE/blob/main/experiments/timeSeries.ipynb)
 

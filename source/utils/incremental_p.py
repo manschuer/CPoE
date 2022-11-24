@@ -1,5 +1,5 @@
 import numpy as np
-from mix import inv_logDet, dot3lr, dot3rl, inv_c, diag_HtKH 
+from mix import inv_logDet, dot3lr, dot3rl, inv_c, diag_HtKH
 #from scipy.optimize import  root_scalar
 import math
 
@@ -9,7 +9,7 @@ import properscoring as ps
 
 import time
 
-from numpy_lru_cache_decorator import np_cache
+from utils.numpy_lru_cache_decorator import np_cache
 from scipy.optimize import minimize
 #from incremental_run import Partition
 
@@ -58,7 +58,7 @@ class INCR:
 
 		self.Jp = Jp 					# fraction of local inducing points
 
-		if not MODE=='moving': 
+		if not MODE=='moving':
 			self.aS = np.int(np.ceil(self.Jp*self.aB)*self.P + self.M	)	# state size (approx if k-means) in AVERAGE!!
 		else:
 			self.aS = np.int(self.aB*(self.P-1)/J ) + np.int(self.aB/J1 )
@@ -89,10 +89,10 @@ class INCR:
 		self.LINSPACE = LINSPACE
 
 		self.MINVAR_KF = MINVAR_KF
-	
+
 
 		self.SMOOTH = SMOOTH
-	
+
 
 
 		#self.jit = 1e-9#1e-6#####1e-7#!!!!!!!!!!!!!!!!!!!!!!
@@ -135,15 +135,15 @@ class INCR:
 		#self.sortData1D()
 		#self.initKF()
 		self.initKF_fast()
-		
+
 
 	def initKF_fast(self):
-	
+
 		# natural pointwise predictive mean and precision
 		# self.n_agg = np.zeros(self.Ntest)
 		# self.p_agg = np.zeros(self.Ntest)
 
-		
+
 		self.PARAMS = []
 
 		if self.kern.name == 'sum':
@@ -153,7 +153,7 @@ class INCR:
 
 
 		for keri in kerns:
-			
+
 			#parVar = PARAM('variance', keri, not keri.variance.is_fixed )
 			#parLen = PARAM('lengthscale', keri, not keri.lengthscale.is_fixed )			# ARD!!
 
@@ -171,8 +171,8 @@ class INCR:
 
 				parInc = PARAM(nnam, par, keri, not par.is_fixed )
 				self.PARAMS.append(parInc)
-		
-		parNoise = PARAM('noise', self.likelihood.variance, None, not self.likelihood.is_fixed)	
+
+		parNoise = PARAM('noise', self.likelihood.variance, None, not self.likelihood.is_fixed)
 
 		self.PARAMS.append(parNoise)
 
@@ -188,9 +188,9 @@ class INCR:
 		if self.KL_and_LIK:
 
 			self.KLLs = []
-			self.LIKs = [] 
+			self.LIKs = []
 
-	
+
 
 
 
@@ -281,7 +281,7 @@ class INCR:
 	# # 	self.X_train = self.X_train[perm,:]
 	# # 	self.y_train = self.y_train[perm]
 
-	
+
 
 	def funA(self, q, S, pps):
 		return np.sum(  pps**q ) - min(S, np.sum(pps>0) )
@@ -303,7 +303,7 @@ class INCR:
 
 		np.random.seed(seed)
 
-		self.Rk = []			## store only few last? for some methods we need... change it 
+		self.Rk = []			## store only few last? for some methods we need... change it
 
 		if STORE:
 			self.Rks = []			## only for visualization (or smoothing?)
@@ -334,7 +334,7 @@ class INCR:
 			self.m_minV = np.zeros(self.Ntest)
 			self.v_minV = np.ones(self.Ntest)*1e10
 			self.whichKs = np.zeros(self.Ntest, dtype=int)
-		
+
 
 		if self.SMOOTH:
 			# save for smoothing afterwards
@@ -349,14 +349,14 @@ class INCR:
 			#self.Dtrains_diag = []
 
 
-	
 
-		
+
+
 
 		timeKr = 0
 		timeKrr = 0
 		timeTrans = 0
-		timeKxr = 0 
+		timeKxr = 0
 		timeLik = 0
 		timePredK = 0
 		timePred = 0
@@ -406,7 +406,7 @@ class INCR:
 			Jk = np.int(np.ceil(self.Jp*Bk))
 
 
-	
+
 
 
 			#print(Bk)
@@ -415,10 +415,10 @@ class INCR:
 
 
 			# get current inducing points of size BxP (actually full GP of current and past)
-			#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]  
+			#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]
 
 			if self.MODE == 'sparse_global':
-				# sparse and global version	
+				# sparse and global version
 				Rloc1 = X_k 			#+ np.random.randn(X_k.shape[0], X_k.shape[1])*1e-4   #!!!!!!!!!!!!!!!!!
 				inds = np.random.permutation(Bk)[:Jk]
 				#inds = np.arange(Jk)
@@ -523,7 +523,7 @@ class INCR:
 					lif_k = np.floor( ( np.random.random(Bk)*self.K**2 - self.K**2 + self.K*x )/x )
 
 
-	
+
 
 				indsQ = lif_k > 0
 				indsR = lives_active_set > 0
@@ -549,10 +549,10 @@ class INCR:
 					probsCand1 = np.zeros((0))
 				else:
 					probsCand1 = np.mean( self.kern.K(Ak, X_k), 1)
-				
+
 				probsCand2 = np.mean( self.kern.K(X_k, X_k), 1)
 
-				probsCon = np.concatenate([probsCand1, probsCand2])  
+				probsCon = np.concatenate([probsCand1, probsCand2])
 				probs = probsCon/np.amax(probsCon)   # normalize
 
 
@@ -582,7 +582,7 @@ class INCR:
 				Ak = np.concatenate([ Ak[ takes[:len(probsCand1)]==True, :], X_k[ takes[len(probsCand1):]==True, :] ])
 
 				if STORE:
-					self.Rks.append(Ak)  
+					self.Rks.append(Ak)
 
 				R1 = Ak
 
@@ -595,19 +595,19 @@ class INCR:
 
 				if self.P>1 and k>0:
 					X_P_past = np.vstack(self.X_trains_k[np.maximum(k-self.P+1,0):k])
-					
+
 					if self.LINSPACE:
 						indPS = np.arange(X_P_past.shape[0],0,-self.J)-1
-						
+
 					else:
 						NP = X_P_past.shape[0]
 						indPS = NP - np.geomspace(1,NP,np.int(NP/self.J),dtype=int)
 						indPS = np.unique(indPS)
 
 					#print(indPS,len(indPS),np.int(NP/self.J),NP)
-						
+
 					Rpast = X_P_past[indPS,:]
-			
+
 					Rcur = X_k[np.arange(Bk,0,-self.J1)-1,:]
 
 					R1 = np.vstack([Rpast, Rcur])
@@ -621,7 +621,7 @@ class INCR:
 				sizes[k] = R1.shape[0]
 
 				if STORE:
-					self.Rks.append(R1)  
+					self.Rks.append(R1)
 
 			# here for all methods we have in R1 the current active set
 			# R0 the previous one
@@ -640,9 +640,9 @@ class INCR:
 			iKrr1, Krr1 = self.comp_kernR(R1)
 			timeKr += time.time() - start
 
-			
 
-		
+
+
 
 
 
@@ -673,7 +673,7 @@ class INCR:
 					timeKr += time.time() - start
 
 				start = time.time()
-				A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)  
+				A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)
 				timeKrr += time.time() - start
 
 
@@ -687,7 +687,7 @@ class INCR:
 
 
 
-				start = time.time()  
+				start = time.time()
 				mk, Pk = self.trans(mk, Pk, A_k, D_k)
 				timeTrans += time.time() - start
 
@@ -704,12 +704,12 @@ class INCR:
 
 
 			# compute current predictive distribution after translation
-			start = time.time()  
+			start = time.time()
 			Hpred, _, dpred = self.comp_kernX(self.X_test, R1, iKrr1)				#A)
 			timePredK += time.time() - start
 
 			if PREDICT:
-				start = time.time()  
+				start = time.time()
 				m, v = self.pred_y_Diag(mk, Pk, Hpred, dpred, self.likelihood.variance[0])
 				timePred += time.time() - start
 
@@ -747,7 +747,7 @@ class INCR:
 
 
 			# B: update step
-			start = time.time()  
+			start = time.time()
 			if self.DIAG:
 				Htrain_k, _, dtrain_k = self.comp_kernX(X_k, R1, iKrr1)
 				Dtrain_k = np.diag(dtrain_k)
@@ -757,7 +757,7 @@ class INCR:
 
 
 
-			start = time.time()  
+			start = time.time()
 			# inlcuding derivative update!!
 			mk, Pk, lik_k = self.lik_up(mk, Pk, y_k, Htrain_k, self.al*Dtrain_k+ np.eye(Bk)*self.likelihood.variance[0], DERIVS=GRAD, iK_AA=iKrr1)
 			timeLik += time.time() - start
@@ -769,8 +769,8 @@ class INCR:
 
 			#print(ak)
 			#ak_al = np.sum( np.log( np.diag(Dtrain_k)*self.al/self.sig2_n[0] + 1 ) ) *(1-self.al)/(2*self.al)
-		
-			
+
+
 			#self.ak += ak_al
 			#print(ak_al)
 			#self.lik += lik_k #+ ak_al
@@ -781,7 +781,7 @@ class INCR:
 
 			if PREDICT:
 				# compute current predictive distribution after update
-				start = time.time() 
+				start = time.time()
 				m, v = self.pred_y_Diag(mk, Pk, Hpred, dpred, self.likelihood.variance[0])
 				timePred += time.time() - start
 
@@ -807,7 +807,7 @@ class INCR:
 						indHH = k
 					else:
 						indHH = 2*k + 1
-					
+
 					self.Vks[indHH,:] = v
 					self.Mks[indHH,:] = m
 
@@ -870,7 +870,7 @@ class INCR:
 
 					if self.GRAD_STORE:
 
-					
+
 
 						self.PAST_VALS = np.vstack([self.PAST_VALS, np.exp(newValues)])
 						self.PAST_GRADS = np.vstack([self.PAST_GRADS, dliks])
@@ -879,7 +879,7 @@ class INCR:
 
 		#if STOCH:
 		#	print(' ')
-			
+
 
 		if PREDICT :
 			# invert natural cummulative predictive distribution
@@ -895,7 +895,7 @@ class INCR:
 			self.CI[:,0] = self.m_agg - 1.96*np.sqrt(self.v_agg)
 			self.CI[:,1] = self.m_agg + 1.96*np.sqrt(self.v_agg)
 
-			
+
 			if self.KL_and_LIK:
 
 				if len(self.mvFULL)==2:
@@ -905,7 +905,6 @@ class INCR:
 
 				self.LIKs.append(self.lik)
 
-				
 
 
 
@@ -914,7 +913,8 @@ class INCR:
 
 
 
-		
+
+
 
 
 
@@ -956,15 +956,15 @@ class INCR:
 
 
 	# def generateData(self, VaryDict=None, seed=123):
-			
 
-	
+
+
 
 	# 	np.random.seed(seed)
 
 	# 	self.fks = []
 
-	# 	self.Rk = []			## store only few last? for some methods we need... change it 
+	# 	self.Rk = []			## store only few last? for some methods we need... change it
 
 
 
@@ -1013,10 +1013,10 @@ class INCR:
 
 
 	# 		# get current inducing points of size BxP (actually full GP of current and past)
-	# 		#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]  
+	# 		#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]
 
 	# 		if self.MODE == 'sparse_global':
-	# 			# sparse and global version	
+	# 			# sparse and global version
 	# 			Rloc1 = X_k 			#+ np.random.randn(X_k.shape[0], X_k.shape[1])*1e-4   #!!!!!!!!!!!!!!!!!
 	# 			inds = np.random.permutation(Bk)[:Jk]
 	# 			#inds = np.arange(Jk)
@@ -1037,7 +1037,7 @@ class INCR:
 	# 			else:
 	# 				R1 = RlocAll1
 
-				
+
 
 	# 		if self.MODE=='geometric' or self.MODE=='poisson' or self.MODE=='gamma' or self.MODE=='binomial' or self.MODE=='negbinomial' or self.MODE=='betaBinomial' or self.MODE=='sparse':
 	# 			# geometric/probabilistiv markov process
@@ -1104,7 +1104,7 @@ class INCR:
 	# 			#lifetimes[indsT] += 1
 	# 			sizes[k] = Rk0.shape[0]
 
-		
+
 
 	# 			R1 = Rk0
 
@@ -1116,10 +1116,10 @@ class INCR:
 	# 				probsCand1 = np.zeros((0))
 	# 			else:
 	# 				probsCand1 = np.mean( self.kern.K(Ak, X_k), 1)
-				
+
 	# 			probsCand2 = np.mean( self.kern.K(X_k, X_k), 1)
 
-	# 			probsCon = np.concatenate([probsCand1, probsCand2])  
+	# 			probsCon = np.concatenate([probsCand1, probsCand2])
 	# 			probs = probsCon/np.amax(probsCon)   # normalize
 
 
@@ -1148,7 +1148,7 @@ class INCR:
 
 	# 			Ak = np.concatenate([ Ak[ takes[:len(probsCand1)]==True, :], X_k[ takes[len(probsCand1):]==True, :] ])
 
-		
+
 
 	# 			R1 = Ak
 
@@ -1168,7 +1168,7 @@ class INCR:
 
 	# 			for par in self.PARAMS:
 	# 				if par.EST:
-						
+
 	# 					#print( par.name,' n ',VaryDict[par.name][k] )
 
 	# 					newValues = np.vstack([newValues, VaryDict[par.name][k]])
@@ -1183,20 +1183,20 @@ class INCR:
 
 
 	# 		iKrr1, Krr1 = self.comp_kernR(R1)
-		
 
-			
 
-		
+
+
+
 
 
 
 	# 		# A: translation step
 	# 		if k==0:
 	# 			#mk = np.zeros(Jk+self.M)
-	# 			mk = np.random.multivariate_normal(np.zeros(Krr1.shape[0]),Krr1,1)[0,:] 
-	
-		
+	# 			mk = np.random.multivariate_normal(np.zeros(Krr1.shape[0]),Krr1,1)[0,:]
+
+
 
 
 	# 		else:
@@ -1205,15 +1205,15 @@ class INCR:
 	# 			A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)
 
 	# 			ga_k = np.random.multivariate_normal(np.zeros(D_k.shape[0]),D_k,1)[0,:]
-			
+
 
 	# 			mk = np.dot(A_k, mk) + ga_k
 
-			
 
-		
+
+
 	# 			#mk, Pk = self.trans(mk, Pk, A_k, D_k)
-			
+
 
 
 
@@ -1226,11 +1226,11 @@ class INCR:
 
 
 	# 		eps_k = np.random.normal(0, np.sqrt( self.likelihood.variance[0]), len(nu_k) )
-			 
-			
 
-	# 		f_k0 = np.dot(Htrain_k, mk) 
-	# 		f_k = f_k0 + nu_k 
+
+
+	# 		f_k0 = np.dot(Htrain_k, mk)
+	# 		f_k = f_k0 + nu_k
 	# 		y_k_gen = f_k + eps_k
 
 	# 		self.y_trains_k[k] = y_k_gen
@@ -1247,7 +1247,7 @@ class INCR:
 
 
 
-		
+
 
 
 
@@ -1268,7 +1268,7 @@ class INCR:
 	# 	timeKr = 0
 	# 	timeKrr = 0
 	# 	timeTrans = 0
-	# 	timeKxr = 0 
+	# 	timeKxr = 0
 	# 	timeLik = 0
 	# 	timePredK = 0
 	# 	timePred = 0
@@ -1286,7 +1286,7 @@ class INCR:
 	# 	#Qterm = 0
 	# 	#Sigterm = 0
 
-	
+
 
 	# 	# # compute prediction kernel for global inducing points
 	# 	# if self.M>0:
@@ -1345,10 +1345,10 @@ class INCR:
 
 
 	# 		# get current inducing points of size BxP (actually full GP of current and past)
-	# 		#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]  
+	# 		#R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]
 
 	# 		if self.MODE == 'sparse_global':
-	# 			# sparse and global version	
+	# 			# sparse and global version
 	# 			Rloc1 = X_k 			#+ np.random.randn(X_k.shape[0], X_k.shape[1])*1e-4   #!!!!!!!!!!!!!!!!!
 	# 			inds = np.random.permutation(Bk)[:Jk]
 	# 			#inds = np.arange(Jk)
@@ -1424,7 +1424,7 @@ class INCR:
 	# 				lif_k = np.floor( ( np.random.random(Bk)*self.K**2 - self.K**2 + self.K*x )/x )
 
 
-	
+
 
 	# 			indsQ = lif_k > 0
 	# 			indsR = lives_active_set > 0
@@ -1450,10 +1450,10 @@ class INCR:
 	# 				probsCand1 = np.zeros((0))
 	# 			else:
 	# 				probsCand1 = np.mean( self.kern.K(Ak, X_k), 1)
-				
+
 	# 			probsCand2 = np.mean( self.kern.K(X_k, X_k), 1)
 
-	# 			probsCon = np.concatenate([probsCand1, probsCand2])  
+	# 			probsCon = np.concatenate([probsCand1, probsCand2])
 	# 			probs = probsCon/np.amax(probsCon)   # normalize
 
 
@@ -1483,7 +1483,7 @@ class INCR:
 	# 			Ak = np.concatenate([ Ak[ takes[:len(probsCand1)]==True, :], X_k[ takes[len(probsCand1):]==True, :] ])
 
 	# 			if STORE:
-	# 				self.Rks.append(Ak)  
+	# 				self.Rks.append(Ak)
 
 	# 			R1 = Ak
 
@@ -1508,16 +1508,16 @@ class INCR:
 	# 			#m0 = mk     # last mean
 
 	# 			start = time.time()
-	# 			A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)  
+	# 			A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)
 	# 			timeKrr += time.time() - start
 
-	# 			start = time.time()  
+	# 			start = time.time()
 	# 			mk, Pk = self.trans(mk, Pk, A_k, D_k)
 	# 			timeTrans += time.time() - start
 
 
 	# 		# compute current predictive distribution after translation
-	# 		start = time.time()  
+	# 		start = time.time()
 	# 		Hpred, _, dpred = self.comp_kernX(self.X_test, R1, iKrr1)				#A)
 	# 		#Hpred, _, dpred, t1, t2, t3 = self.comp_kernX_TIME(self.X_test, R1, iKrr1)
 
@@ -1526,7 +1526,7 @@ class INCR:
 	# 		# 	numInd = 0
 	# 		# else:
 	# 		# 	numInd = self.Rk[k-self.P].shape[0]
-		
+
 	# 		# Kxrold = KXR_P[:,numInd:]
 
 	# 		# Kxrnew = self.kern.K(self.X_test,Rloc1)
@@ -1540,7 +1540,7 @@ class INCR:
 	# 		#T3 += t3
 	# 		timePredK += time.time() - start
 
-	# 		start = time.time()  
+	# 		start = time.time()
 	# 		#m, v = self.pred_y_diag(mk, Pk, Hpred, np.diag(dpred), self.sig2_n[0])
 	# 		m, v = self.pred_y_Diag(mk, Pk, Hpred, dpred, self.likelihood.variance[0])
 	# 		timePred += time.time() - start
@@ -1551,7 +1551,7 @@ class INCR:
 	# 			self.n_agg -= m/v
 
 	# 		# B: update step
-	# 		start = time.time()  
+	# 		start = time.time()
 	# 		if self.DIAG:
 	# 			Htrain_k, _, dtrain_k = self.comp_kernX(X_k, R1, iKrr1)
 	# 			Dtrain_k = np.diag(dtrain_k)
@@ -1559,7 +1559,7 @@ class INCR:
 	# 			Htrain_k, _, Dtrain_k = self.comp_kernX(X_k, R1, iKrr1, DIAG=False)
 	# 		timeKxr += time.time() - start
 
-			
+
 	# 		# if k==0:
 	# 		# 	#y_HFmu = (y_k - np.dot(Htrain_k, m0) )
 	# 		# 	#diagHFSigFtHt = diag_HtKH(Htrain_k.T, P0)
@@ -1578,36 +1578,36 @@ class INCR:
 	# 		# diagHFSigFtHt = diag_HtKH(HF.T, P0)
 
 
-	# 		start = time.time()  
+	# 		start = time.time()
 	# 		mk, Pk, lik_k = self.lik_up(mk, Pk, y_k, Htrain_k, self.al*Dtrain_k+ np.eye(Bk)*self.likelihood.variance[0])
 	# 		timeLik += time.time() - start
 
 	# 		ak = np.trace(Dtrain_k) / (2*self.likelihood.variance[0])
 	# 		ak_al = np.sum( np.log( np.diag(Dtrain_k)*self.al/self.likelihood.variance[0] + 1 ) ) *(1-self.al)/(2*self.al)
-		
-			
+
+
 	# 		self.ak += ak_al
 
 
 	# 		self.lik += lik_k
-			
+
 	# 		# if k==0:
 	# 		# 	self.low_bound += ( -np.sum(y_HFmu**2) - ak - np.sum(diagHFSigFtHt) ) / (2*self.sig2_n[0]) - Bk/2 * np.log(2*np.pi*self.sig2_n[0])
 
 	# 		# else:
 	# 		# 	self.low_bound += ( -np.sum(y_HFmu**2) - ak - np.sum(diagHFSigFtHt) - np.sum(diagHQHt) ) / (2*self.sig2_n[0])   - Bk/2 * np.log(2*np.pi*self.sig2_n[0])
 
-	# 		# 	Qterm += - np.sum(diagHQHt) / (2*self.sig2_n[0])  
+	# 		# 	Qterm += - np.sum(diagHQHt) / (2*self.sig2_n[0])
 
 	# 		# likterm += -np.sum(y_HFmu**2) / (2*self.sig2_n[0]) - Bk/2 * np.log(2*np.pi*self.sig2_n[0])
 	# 		# iS, lDS = inv_logDet( dot3lr( HF, P0, HF.T) + dot3rl(Htrain_k, D_k, Htrain_k.T) + self.sig2_n[0]*np.eye(HF.shape[0]))
 	# 		# likterm2 += - dot3lr( y_HFmu, iS ,y_HFmu ) / (2) - Bk/2 * np.log(2*np.pi) - lDS/2
 	# 		# Sigterm += - np.sum(diagHFSigFtHt)  / (2*self.sig2_n[0])
-			
+
 
 
 	# 		# compute current predictive distribution after update
-	# 		start = time.time() 
+	# 		start = time.time()
 	# 		#Hpred, _, dpred = self.comp_kernX(self.X_test, R1, iKrr1) # same as before!!
 	# 		#m, v = self.pred_y_diag(mk, Pk, Hpred, np.diag(dpred), self.sig2_n[0])
 	# 		m, v = self.pred_y_Diag(mk, Pk, Hpred, dpred, self.likelihood.variance[0])
@@ -1623,7 +1623,7 @@ class INCR:
 	# 		RlocAll0 = RlocAll1 	# only JkxP
 	# 		iKrr0 = iKrr1			# of all -> compute it more clever!!!!
 
-		
+
 
 
 	# 		if STORE:
@@ -1642,7 +1642,7 @@ class INCR:
 
 
 	# 	self.CI = np.zeros((len(self.m_agg), 2))
-		
+
 	# 	# if any( self.v_agg < 0):
 	# 	# 	print('min_v is ', np.amin(self.v_agg))
 	# 	# 	nn = np.sum(self.v_agg < 0)
@@ -1699,7 +1699,7 @@ class INCR:
 	# 		#print('T3 ',T3)
 	# 		print(' ')
 
-		
+
 
 	# 	#print(self.name+' '+str(R1.shape[0]))
 
@@ -1709,7 +1709,7 @@ class INCR:
 
 
 
-	# old version when storing everything (in particular for smoothing)	
+	# old version when storing everything (in particular for smoothing)
 	# not working with local inducing points!!!!!!!!!!!!!!!!!!!!!!!!!
 	#def apply_KF(self, seed=123):
 
@@ -1720,7 +1720,7 @@ class INCR:
 	# 		y_k = self.y_train[(self.B*(k)):(self.B*(k+1))]
 
 	# 		# get current inducing points of size BxP (actually full GP of current and past)
-	# 		R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]   
+	# 		R1 = self.X_train[np.maximum(0,self.B*(k+1-self.P)):self.B*(k+1), :]
 
 	# 		if self.J < self.B:
 	# 			np.random.seed(seed)
@@ -1737,7 +1737,7 @@ class INCR:
 	# 			mk = np.zeros(self.B+self.M)
 	# 			Pk = Krr1
 	# 		else:
-	# 			A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)    
+	# 			A_k, _, D_k = self.comp_kernX(R1, R0, iKrr0, DIAG=False)
 	# 			mk, Pk = self.trans(mk, Pk, A_k, D_k)
 
 
@@ -1999,11 +1999,11 @@ class INCR:
 	# 	H = np.dot(Kxr, iKrr)
 
 	# 	#Q = dot3lr(Kxr, iKrr, Kxr.T)
-		
+
 	# 	q = diag_HtKH(Kxr.T, iKrr)
 	# 	#kxx = self.kern.Kdiag(X)
 	# 	d = kxx - q
-	
+
 
 	# 	return H, q, d
 
@@ -2074,7 +2074,7 @@ class INCR:
 					par.dmk = []
 					par.dPk = []
 					for j in range(dim3):
-						par.dmk.append( np.zeros(SS) )			
+						par.dmk.append( np.zeros(SS) )
 						par.dPk.append(par.dKs['dK_AA'][:,:,j])
 
 				elif len(shapeK) == 4:
@@ -2086,7 +2086,7 @@ class INCR:
 					par.dPk = []
 					for i in range(dim3):
 						for j in range(dim4):
-							par.dmk.append( np.zeros(SS) )			
+							par.dmk.append( np.zeros(SS) )
 							par.dPk.append(par.dKs['dK_AA'][:,:,i,j])
 
 
@@ -2140,9 +2140,9 @@ class INCR:
 				# elif par.name == 'variances':
 				# 	par.dlik = np.zeros(self.kern.input_dim)
 
-	
 
-				
+
+
 
 
 
@@ -2162,20 +2162,20 @@ class INCR:
 			if par.EST:
 
 				shapeK = par.dKs['dK_AA'].shape
-		
+
 				if len(shapeK) == 2: ## only scalar parameter
 
 					par.dmk, par.dPk = self.update_deriv_trans(mk, Pk, Fk, iK_BB, par.dKs['dK_AA'], par.dKs['dK_AB'], par.dKs['dK_BB'], par.dmk, par.dPk)
 
 
 				elif len(shapeK) == 3:
-			
+
 					for j in range(shapeK[2]):
 						par.dmk[j], par.dPk[j] = self.update_deriv_trans(mk, Pk, Fk, iK_BB, \
 														par.dKs['dK_AA'][:,:,j], par.dKs['dK_AB'][:,:,j], par.dKs['dK_BB'][:,:,j], \
 														par.dmk[j], par.dPk[j])
 
-				elif len(shapeK) == 4:	
+				elif len(shapeK) == 4:
 
 					ij = 0
 					for i in range(shapeK[2]):
@@ -2186,11 +2186,11 @@ class INCR:
 														par.dmk[ij], par.dPk[ij])
 							ij += 1
 
-	
+
 
 	def update_deriv_trans(self, mk, Pk, Fk, iK_BB, dK_AA, dK_AB, dK_BB, dmk, dPk):
 
-		
+
 		dFk = np.dot( dK_AB, iK_BB) - dot3rl( Fk, dK_BB, iK_BB )
 
 		#print(dFk)
@@ -2201,7 +2201,7 @@ class INCR:
 
 		dmk1 = np.dot( dFk, mk ) + np.dot( Fk, dmk )
 
-		dFkPkFkT = dot3rl( dFk, Pk, Fk.T) 
+		dFkPkFkT = dot3rl( dFk, Pk, Fk.T)
 		#dPk1 = dot3rl( dFk, Pk, Fk.T) + dot3rl( Fk, dPk, Fk.T) + dot3rl( Fk, Pk, dFk.T) + dQk
 		dPk1 = dFkPkFkT + dot3rl( Fk, dPk, Fk.T) + dFkPkFkT.T + dQk
 
@@ -2214,17 +2214,17 @@ class INCR:
 		for par in self.PARAMS:
 
 			if par.EST:
-			
+
 				shapeK = par.dKs['dK_AA'].shape
 
 				NOISE = par.name == 'noise'
 
 				if len(shapeK) == 2:   ## only scalar parameter
 					par.dmk, par.dPk, par.dlik = self.update_deriv_up(mk, Pk, Hk, iK_AA, rk, Sk, iSk, Gk, par.dKs['dK_AA'], par.dKs['dK_XA'], par.dKs['dk_xx'], par.dmk, par.dPk, par.dlik, NOISE )
-				
+
 				elif len(shapeK) == 3:
 
-					
+
 					for j in range(shapeK[2]):
 						par.dmk[j], par.dPk[j], par.dlik[j] = self.update_deriv_up(mk, Pk, Hk, iK_AA, rk, Sk, iSk, Gk, \
 														par.dKs['dK_AA'][:,:,j], par.dKs['dK_XA'][:,:,j], par.dKs['dk_xx'][:,j], \
@@ -2249,8 +2249,8 @@ class INCR:
 
 		dHk = np.dot( dK_XA, iK_AA) - dot3rl( Hk, dK_AA, iK_AA )
 		#ddiagVk = dk_xx - np.diag( np.dot( dK_XA, Hk.T ) ) + diag_HtKH( Hk.T, dK_AA  )  - np.diag( np.dot( Hk, dK_XA.T ) )
-		
-		ddiagVk = dk_xx - 2*np.sum( dK_XA * Hk, 1) + diag_HtKH( Hk.T, dK_AA  ) 
+
+		ddiagVk = dk_xx - 2*np.sum( dK_XA * Hk, 1) + diag_HtKH( Hk.T, dK_AA  )
 
 
 		drk = -np.dot( dHk, mk ) - np.dot( Hk, dmk )
@@ -2269,7 +2269,7 @@ class INCR:
 
 
 		dmk1 = dmk + np.dot( dGk, rk ) + np.dot( Gk, drk )
-		#dPk1 = dPk - dot3rl( dGk, Sk, Gk.T) - dot3rl( Gk, dSk, Gk.T)  - dot3rl( Gk, Sk, dGk.T) 
+		#dPk1 = dPk - dot3rl( dGk, Sk, Gk.T) - dot3rl( Gk, dSk, Gk.T)  - dot3rl( Gk, Sk, dGk.T)
 		dGSGt = dot3rl( dGk, Sk, Gk.T)
 		dPk1 = dPk - dGSGt - dot3rl( Gk, dSk, Gk.T)  - dGSGt.T
 
@@ -2307,7 +2307,7 @@ class PARAM:
 
 		self.name = name
 		self.par = par
-		self.kern = kern 	
+		self.kern = kern
 
 		self.dKs = {}		# dictionary with all needed kernel derivatives wrt parameter
 		self.EST = EST
@@ -2359,7 +2359,7 @@ class PARAM:
 
 		return len(self.get_value())
 
-		
+
 
 
 	def update_value(self, value):
@@ -2370,12 +2370,12 @@ class PARAM:
 
 		# change values
 		# if self.name=='noise':
-		# 	self.kern.variance[0] = value 		### it is likelihood 
+		# 	self.kern.variance[0] = value 		### it is likelihood
 		# elif self.name=='variance':
 		# 	self.kern.variance = value
 		# elif self.name=='lengthscale':
 		# 	self.kern.lengthscale = value
-		
+
 		# if len(value)==1:
 		# 	self.par.fill(value[0])
 		# else:
@@ -2388,7 +2388,7 @@ class PARAM:
 
 	def update_grad(self, A, B=None, X=None):
 
-		
+
 		# variance for RBF kernel
 		if self.name=='variance':
 
@@ -2398,7 +2398,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dσ02(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dσ02(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dσ02_diag(X)  
+				self.dKs['dk_xx'] = self.kern.dK_dσ02_diag(X)
 
 		# lengthscales for RBF kernel
 		elif self.name=='lengthscale':
@@ -2419,7 +2419,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dvs(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dvs(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dvs_diag(X)  
+				self.dKs['dk_xx'] = self.kern.dK_dvs_diag(X)
 
 		# weights for SM kernel
 		elif self.name=='weights':
@@ -2429,7 +2429,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dw(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dw(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dw_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dw_diag(X)
 		# means for SM kernel
 		elif self.name=='means':
 			self.dKs = {'dK_AA': self.kern.dK_dm(A)}
@@ -2438,7 +2438,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dm(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dm(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dm_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dm_diag(X)
 		# variances for SM kernel
 		elif self.name=='variancesSM':
 			self.dKs = {'dK_AA': self.kern.dK_dv(A)}
@@ -2447,7 +2447,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dv(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dv(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dv_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dv_diag(X)
 
 		# variances for std_periodic kernel
 		elif self.name=='varianceP':
@@ -2457,7 +2457,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dv(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dv(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dv_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dv_diag(X)
 
 		# lengthscales for std_periodic kernel
 		elif self.name=='lengthscaleP':
@@ -2467,7 +2467,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dl(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dl(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dl_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dl_diag(X)
 
 		# periods for std_periodic kernel
 		elif self.name=='periodP':
@@ -2477,7 +2477,7 @@ class PARAM:
 				self.dKs['dK_BB'] = self.kern.dK_dp(B)
 			if X is not None:
 				self.dKs['dK_XA'] = self.kern.dK_dp(X,A)
-				self.dKs['dk_xx'] = self.kern.dK_dp_diag(X) 
+				self.dKs['dk_xx'] = self.kern.dK_dp_diag(X)
 
 		elif self.name=='noise':
 
@@ -2495,7 +2495,7 @@ class PARAM:
 
 
 def KL1(m1,m2,v1,v2):
-	return 0.5*(np.log(v2/v1) + (v1 + (m1-m2)**2)/v2 - 1)  
+	return 0.5*(np.log(v2/v1) + (v1 + (m1-m2)**2)/v2 - 1)
 
 
 
@@ -2508,7 +2508,7 @@ class Independent:
 		self.DD = DD
 		self.K = K
 		self.kern = kern.copy()
-		self.likelihood = likelihood.copy() 
+		self.likelihood = likelihood.copy()
 
 		self.seed = seed
 
@@ -2520,7 +2520,7 @@ class Independent:
 
 
 		self.priorNoise = priorNoise
-		
+
 
 		if PP==None:
 			self.PP = Partition(DD)
@@ -2528,11 +2528,11 @@ class Independent:
 		else:
 			self.PP = PP
 			self.K = PP.K
-			print('K =',self.K)
+			#print('K =',self.K)
 
 		if M_sp!=None:
 			self.M_sp = M_sp
-		else: 
+		else:
 			self.M_sp = len( self.PP.y_trains_k[0])
 
 
@@ -2574,7 +2574,7 @@ class Independent:
 			#self.GPmod.inference_method = GPy.inference.latent_function_inference.PEP(1e-10)
 			#self.GPmod.inference_method = GPy.inference.latent_function_inference.DTC()
 			self.GPmod.Gaussian_noise = self.likelihood.variance[0]
-			
+
 
 
 
@@ -2616,14 +2616,14 @@ class Independent:
 				inds_BJ = np.array(  np.linspace(0,len( self.PP.y_trains_k[k_data])-1,self.M_sp, endpoint=True ) , dtype=int)
 				#self.GPmod = GPy.models.SparseGPRegression(self.PP.X_trains_k[k_data], self.PP.y_trains_k[k_data][:,None], kernel = self.kern, Z=self.PP.X_trains_k[k_data][inds_BJ,:])
 				#self.GPmod.inducing_inputs = self.PP.X_trains_k[k_data][inds_BJ,:]
-				self.GPmod.Z = self.PP.X_trains_k[k_data][inds_BJ,:] 
+				self.GPmod.Z = self.PP.X_trains_k[k_data][inds_BJ,:]
 
 
 			self.GPmod.set_XY(self.PP.X_trains_k[k_data], self.PP.y_trains_k[k_data][:,None])
-		
-			
+
+
 			#self.GPmod.set_Z(self.PP.X_trains_k[k_data][inds_BJ,:])
-			
+
 
 			#self.GPmod.kernel = self.kern
 			#print(self.GPmod.Gaussian_noise[0]-self.likelihood.variance[0])
@@ -2633,12 +2633,12 @@ class Independent:
 
 
 			#self.GPmod._update_gradients()
-			
+
 
 
 	def init_stoch(self, iStart=0):
 
-		self.newGPmod(iStart) 
+		self.newGPmod(iStart)
 		pars = self.get_params()
 		if self.optimizer == 'ADAM':
 			self.OPTIMIZER = Adam(self.gamma, (len(pars),) )
@@ -2660,7 +2660,7 @@ class Independent:
 			newValues = self.OPTIMIZER.update( np.log(pars), grads )
 			self.set_params( np.exp(newValues) )
 			self.grads[:] = 0
-	
+
 
 	def run_epochs(self, E=1, gamma=0.01, U=1, TRACE=False, PERM=True, PRINT=False, REL=1e-5):
 
@@ -2711,7 +2711,7 @@ class Independent:
 					self.stoch_gradient_step(UP=False)
 
 			rel = np.abs((self.lik0-self.lik)/self.lik0)
-			
+
 			if PRINT:
 				clear_output(wait=True)
 				display('Epoch '+str(e)+' likelihood: '+str(self.lik)+ ' rel: '+str(rel)+' stop?: '+str(rel<REL) )
@@ -2719,7 +2719,7 @@ class Independent:
 
 			if TRACE:
 				self.LIKS.append(self.lik)
-		
+
 			self.lik0 = self.lik
 			e += 1
 
@@ -2736,9 +2736,9 @@ class Independent:
 	def get_gradients(self):
 
 		#return self.GPmod.gradient_full[self.EST]
-		res =  self.GPmod._log_likelihood_gradients()[self.EST] 
+		res =  self.GPmod._log_likelihood_gradients()[self.EST]
 
-		if hasattr(self.GPmod._log_prior_gradients(), "__len__"): 
+		if hasattr(self.GPmod._log_prior_gradients(), "__len__"):
 			lpg = self.GPmod._log_prior_gradients()[self.EST]
 			if self.OPT_MODE == 'STOCH':
 				lpg /= self.K
@@ -2785,15 +2785,15 @@ class Independent:
 			self.LIKS = []
 			self.VALS = []
 			self.GRADS = []
-		    
+
 
 		self.res = minimize(f, x0, method=method, jac=df, args=self, options={'disp': True, 'gtol':GTOL, 'maxfun': maxF} )
 
 		self.set_params(np.exp(self.res.x))
 		self.lik =     self.res.fun
-        
-            
-@np_cache(maxsize=1)    
+
+
+@np_cache(maxsize=1)
 def f_df(log_params, OBJ):
 
 	t0 = time.time()
@@ -2832,7 +2832,7 @@ def df(log_params, OBJ):
 
 	_, df = f_df(log_params, OBJ)
 
-	return df 
+	return df
 
 
 
@@ -2881,7 +2881,7 @@ def _update_gradients(self):
         #gradients wrt Z
         #if not self.IND_FIX:
         if not self.inducing_inputs.is_fixed:
-            
+
             self.Z.gradient = self.kern.gradients_X(self.grad_dict['dL_dKmm'], self.Z)
             self.Z.gradient += self.kern.gradients_X(self.grad_dict['dL_dKnm'].T, self.Z, self.X)
         #else:
@@ -2956,7 +2956,7 @@ setattr(SparseGP, "_update_gradients", _update_gradients)
 #     #compute dL_dR
 #     Uv = np.dot(U, v)
 #     dL_dR = 0.5*(np.sum(U*np.dot(U,P), 1) - (1.0+alpha_const_term)/beta_star + np.sum(np.square(Y), 1) - 2.*np.sum(Uv*Y, 1) \
-#         + np.sum(np.square(Uv), 1))*beta_star**2 
+#         + np.sum(np.square(Uv), 1))*beta_star**2
 
 #     # Compute dL_dKmm
 #     vvT_P = tdot(v.reshape(-1,1)) + P

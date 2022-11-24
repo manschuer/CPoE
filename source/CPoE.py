@@ -17,11 +17,11 @@ from scipy.sparse import csc_matrix, csr_matrix, triu, tril, find, isspmatrix_cs
 import imageio
 from matplotlib import pyplot as plt
 
-from incremental_p import PARAM
-from incremental_p import Independent
+from utils.incremental_p import PARAM
+from utils.incremental_p import Independent
 from incremental_run import Partition, constructData
 
-from numpy_lru_cache_decorator import np_cache
+from utils.numpy_lru_cache_decorator import np_cache
 from scipy.optimize import minimize
 
 from invTak import invTak_11, preTak
@@ -46,10 +46,7 @@ def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_te
 
 
 
-    if B_increase:
-        Kinc = np.int( np.ceil( J/C  ) )
-    else:
-        Kinc = J
+
 
 
     if (X_test is None) or (y_test is None):
@@ -64,6 +61,12 @@ def CPoE(X_train, y_train, kern, lik, J, C, p=1, HYPERS='FIX', X_test=None, y_te
 
         # compute partition with KDTREE
         PP = Partition(DD)
+
+        if B_increase:
+            Kinc = np.int( np.ceil( J/C  ) )
+        else:
+            Kinc = J
+
         PP.compute_partition2(int(DD.Ntrain/Kinc), col_start=0, seed=seed, randOrder=False)
 
         IND = Independent( DD, Kinc, kern, lik,  PP=PP, SPARSE=False, priorNoise=priorN)
@@ -117,8 +120,8 @@ class BlockGP:
 
 		start = time.time()
 
-		if not (self.DD.Ntrain % K) == 0:
-			print('Ntrain/K not integer!!')
+		#if not (self.DD.Ntrain % K) == 0:
+			#print('Ntrain/K not integer!!')
 
 		if not P<K:
 			print('P has to be smaller than K')
